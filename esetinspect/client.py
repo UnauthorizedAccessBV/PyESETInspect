@@ -1,6 +1,7 @@
 from typing import Any
 from typing import Dict
 from typing import Union
+from uuid import UUID
 
 import attr
 import httpx
@@ -92,6 +93,22 @@ class EsetInspectClient:
 
         return params
 
+    @staticmethod
+    def _is_uuid(input) -> bool:
+
+        if isinstance(input, int):
+            return False
+
+        if isinstance(input, UUID):
+            return True
+
+        try:
+            test_uuid = UUID(input)
+        except ValueError:
+            return False
+
+        return str(test_uuid) == input
+
     def __enter__(self) -> "EsetInspectClient":
         self.login()
         return self
@@ -157,6 +174,7 @@ class EsetInspectClient:
 
     def get_detection(self, detection_id):
         """Get a specific detection based on ID or UUID."""
-        response = self.api_get(f"/detections/{detection_id}")
+        params = {"$idType": "uuid" if self._is_uuid(detection_id) else "id"}
+        response = self.api_get(f"/detections/{detection_id}", params=params)
         detection = Detection(**humps.decamelize(response.json()["DETECTION"]))
         return detection
