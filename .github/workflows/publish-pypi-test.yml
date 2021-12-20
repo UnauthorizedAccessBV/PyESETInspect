@@ -1,10 +1,10 @@
 # This workflows will upload a Python Package using Poetry when a release is created
 
-name: Publish Python Package (test)
+name: Publish Python Package
 
 on:
-  push:
-    tags: "*.*.*"
+  release:
+    types: [published]
 
 jobs:
   deploy:
@@ -18,10 +18,22 @@ jobs:
         python-version: '3.x'
     - name: Set up Poetry
       uses: Gr1N/setup-poetry@v7
+    - name: Bump Poetry version
+        run: |
+          tag=${{ github.event.release.tag_name }}
+          version_number=${tag#?}
+          poetry version $version_number
+     - name: Commit changes
+        uses: EndBug/add-and-commit@v4
+        with:
+          message: "Bump version to ${{ github.event.release.tag_name }}"
+          add: "pyproject.toml"
+          ref: "main"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Build and publish to PyPi
       env:
-        POETRY_PYPI_TOKEN_TESTPYPI: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_API_TOKEN }}
       run: |
         poetry build
-        poetry config repositories.testpypi https://test.pypi.org/legacy/
-        poetry publish -r testpypi
+        poetry publish
