@@ -76,9 +76,9 @@ class EsetInspectClient:
         count: bool = False,
         order_by: str = None,
         filter: str = None,
-    ) -> Dict[Union[str, int], Any]:
+    ) -> Dict[str, Union[str, int, bool]]:
 
-        params: Dict[Union[str, int], Any] = dict()
+        params: Dict[str, Union[str, int, bool]] = {}
 
         if top is not None:
             params.update({"$top": top})
