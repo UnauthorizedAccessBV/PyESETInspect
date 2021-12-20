@@ -1,12 +1,14 @@
 """Holds models for various sorts of data returned from the API."""
-import attr
 import json
-
-from esetinspect.const import EMPTY_UUID, TIMESTAMP_FORMAT
-
 from datetime import datetime
-from typing import Union, Optional
+from typing import Optional
+from typing import Union
 from uuid import UUID
+
+import attr
+
+from esetinspect.const import EMPTY_UUID
+from esetinspect.const import TIMESTAMP_FORMAT
 
 
 def _to_uuid(input: str) -> UUID:
@@ -65,10 +67,16 @@ class Detection:
     uuid: UUID = attr.ib(converter=_to_uuid, repr=str)
 
     # These fields are only present for the detection list (/detections)
-    rule_id: Optional[int] = attr.ib(default=None, validator=attr.validators.optional(attr.validators.instance_of(int)))
+    rule_id: Optional[int] = attr.ib(
+        default=None,
+        validator=attr.validators.optional(attr.validators.instance_of(int)),
+    )
 
     # These fields are only present for detection details (/detection/{id})
-    handled: Optional[int] = attr.ib(default=None, validator=attr.validators.optional(attr.validators.instance_of(int)))
+    handled: Optional[int] = attr.ib(
+        default=None,
+        validator=attr.validators.optional(attr.validators.instance_of(int)),
+    )
     module_first_seen_locally: Optional[datetime] = attr.ib(
         default=None,
         repr=str,
@@ -82,7 +90,9 @@ class Detection:
         validator=attr.validators.optional(attr.validators.instance_of(datetime)),
     )
     process_path: Optional[str] = attr.ib(
-        default=None, converter=str, validator=attr.validators.optional(attr.validators.instance_of(str))
+        default=None,
+        converter=str,
+        validator=attr.validators.optional(attr.validators.instance_of(str)),
     )
 
     # These fields are not present on versions <1.6

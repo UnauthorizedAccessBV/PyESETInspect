@@ -1,8 +1,10 @@
+from typing import Any
+from typing import Dict
+from typing import Union
+
 import attr
 import httpx
 import humps
-
-from typing import Any, Dict, Union
 
 from esetinspect.models import Detection
 
@@ -140,14 +142,21 @@ class EsetInspectClient:
         return self._frontend_request(endpoint, *args, method="DELETE", **kwargs)
 
     def list_detections(
-        self, top: int = None, skip: int = None, count: bool = False, order_by: str = None, filter: str = None
+        self,
+        top: int = None,
+        skip: int = None,
+        count: bool = False,
+        order_by: str = None,
+        filter: str = None,
     ):
+        """List all detections matching the specified criteria."""
         params = self._build_params(top=top, skip=skip, count=count, order_by=order_by, filter=filter)
         response = self.api_get("/detections", params=params)
         detections = [Detection(**d) for d in humps.decamelize(response.json()["value"])]
         return detections
 
     def get_detection(self, detection_id):
+        """Get a specific detection based on ID or UUID."""
         response = self.api_get(f"/detections/{detection_id}")
         detection = Detection(**humps.decamelize(response.json()["DETECTION"]))
         return detection

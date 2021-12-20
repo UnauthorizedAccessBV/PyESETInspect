@@ -24,7 +24,7 @@
 		"python.linting.mypyEnabled": true,
 		"python.linting.flake8Enabled": true,
 		"python.linting.banditEnabled": true,
-		"python.linting.pycodestyleEnabled": true,
+		"python.linting.pycodestyleEnabled": false,
 		"python.linting.pydocstyleEnabled": true,
 		"editor.formatOnSave": true,
 		"python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
@@ -54,7 +54,7 @@
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "poetry install",
+	"postCreateCommand": "poetry install && if [ ! -f .git/hooks/pre-commit ]; then $(poetry env info -p)/bin/pre-commit install; fi",
 	// Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
 	"remoteUser": "vscode"
 }
