@@ -1,6 +1,7 @@
 """Holds models for various sorts of data returned from the API."""
 import json
 from datetime import datetime
+from typing import Dict
 from typing import Optional
 from typing import Union
 from uuid import UUID
@@ -99,10 +100,10 @@ class Detection:
     event: str = attr.ib(factory=str)
     note: str = attr.ib(factory=str)
 
-    def to_dict(self, *args, **kwargs):
+    def to_dict(self) -> Dict:
         """Return the object as a dict."""
-        return attr.asdict(self, *args, **kwargs)
+        return attr.asdict(self)
 
-    def to_json(self):
+    def to_json(self) -> str:
         """Return the object as a JSON string."""
         return json.dumps(attr.asdict(self), default=_to_json)
