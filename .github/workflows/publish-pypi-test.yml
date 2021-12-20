@@ -3,8 +3,8 @@
 name: Publish Python Package (test)
 
 on:
-  release:
-    types: [created]
+  push:
+    tags: "*.*.*"
 
 jobs:
   deploy:
