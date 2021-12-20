@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "esetinspect"
+version = "0.1.0"
+description = ""
+authors = ["Donny Maasland <donny@unauthorizedaccess.nl>"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+httpx = "^0.21.1"
+attrs = "^21.2.0"
+pyhumps = "^3.0.2"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+types-attrs = "^19.1.0"
+pre-commit = "^2.16.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
