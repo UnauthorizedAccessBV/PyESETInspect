@@ -172,11 +172,17 @@ class EsetInspectClient:
         count: bool = False,
         order_by: str = None,
         filter: str = None,
-    ) -> List[Detection]:
+    ) -> Dict[str, Union[int, List[Detection]]]:
         """List all detections matching the specified criteria."""
         params = self._build_params(top=top, skip=skip, count=count, order_by=order_by, filter=filter)
         response = self.api_get("/detections", params=params)
-        detections = [Detection(**d) for d in humps.decamelize(response.json()["value"])]
+        response_json = response.json()
+        detections: Dict[str, Union[int, List[Detection]]] = {}
+
+        if "count" in response_json:
+            detections.update({"count": response_json["count"]})
+
+        detections.update({"value": [Detection(**d) for d in humps.decamelize(response_json["value"])]})
         return detections
 
     def get_detection(self, detection_id: int) -> Detection:
