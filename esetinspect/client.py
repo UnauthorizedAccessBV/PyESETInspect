@@ -10,6 +10,7 @@ from attrs import define
 from attrs import field
 
 from esetinspect.models import Detection
+from esetinspect.models import Task
 
 
 @define
@@ -202,14 +203,16 @@ class EsetInspectClient:
         detections.update({"value": [Detection(**d) for d in humps.decamelize(response_json["value"])]})  # type: ignore
         return detections
 
-    def get_detection(self, detection_id: int) -> Detection:
+    def get_detection(self, detection_id: Union[int, str, UUID]) -> Detection:
         """Get a specific detection based on ID or UUID."""
         params = {"$idType": "uuid" if self._is_uuid(detection_id) else "id"}
         response = self.api_get(f"/detections/{detection_id}", params=params)
         detection = Detection(**humps.decamelize(response.json()["DETECTION"]))  # type: ignore
         return detection
 
-    def update_detection(self, detection_id: int, resolved: bool = None, priority: int = None, note: str = "") -> bool:
+    def update_detection(
+        self, detection_id: Union[int, str, UUID], resolved: bool = None, priority: int = None, note: str = ""
+    ) -> bool:
         """Update detection details."""
         params: Dict[str, str] = {"$idType": "uuid" if self._is_uuid(detection_id) else "id"}
         body: Dict[str, Union[bool, int, str]] = {"note": note}
@@ -246,6 +249,20 @@ class EsetInspectClient:
         if response.status_code == 204:
             return True
         return False
+
+    def isolate_machine(self, computer_id: Union[int, str, UUID]) -> bool:
+        """Isolate a machine from the network."""
+        params: Dict[str, str] = {"$idType": "uuid" if self._is_uuid(computer_id) else "id"}
+
+        response = self.api_post(f"/machines/{computer_id}/isolate", params=params)
+        return Task(**humps.decamelize(response.json()))  # type: ignore
+
+    def integrate_machine(self, computer_id: Union[int, str, UUID]) -> bool:
+        """Integrate a machine into the network."""
+        params: Dict[str, str] = {"$idType": "uuid" if self._is_uuid(computer_id) else "id"}
+
+        response = self.api_post(f"/machines/{computer_id}/integrate", params=params)
+        return Task(**humps.decamelize(response.json()))  # type: ignore
 
     def kill_process(self, process_id: int) -> bool:
         """Kill a running process."""
