@@ -10,6 +10,7 @@ from attrs import define
 from attrs import field
 
 from esetinspect.models import Detection
+from esetinspect.models import Task
 
 
 @define
@@ -114,6 +115,22 @@ class EsetInspectClient:
 
         return str(test_uuid) == input
 
+    @staticmethod
+    def _is_sha1(input: Union[int, str]) -> bool:
+
+        if isinstance(input, int):
+            return False
+
+        if len(input) != 40:
+            return False
+
+        try:
+            int(input, 16)
+        except ValueError:
+            return False
+
+        return True
+
     def __enter__(self) -> "EsetInspectClient":
         self.login()
         return self
@@ -186,16 +203,18 @@ class EsetInspectClient:
         detections.update({"value": [Detection(**d) for d in humps.decamelize(response_json["value"])]})  # type: ignore
         return detections
 
-    def get_detection(self, detection_id: int) -> Detection:
+    def get_detection(self, detection_id: Union[int, str, UUID]) -> Detection:
         """Get a specific detection based on ID or UUID."""
         params = {"$idType": "uuid" if self._is_uuid(detection_id) else "id"}
         response = self.api_get(f"/detections/{detection_id}", params=params)
         detection = Detection(**humps.decamelize(response.json()["DETECTION"]))  # type: ignore
         return detection
 
-    def update_detection(self, detection_id: int, resolved: bool = None, priority: int = None, note: str = "") -> bool:
+    def update_detection(
+        self, detection_id: Union[int, str, UUID], resolved: bool = None, priority: int = None, note: str = ""
+    ) -> bool:
         """Update detection details."""
-        params = {"$idType": "uuid" if self._is_uuid(detection_id) else "id"}
+        params: Dict[str, str] = {"$idType": "uuid" if self._is_uuid(detection_id) else "id"}
         body: Dict[str, Union[bool, int, str]] = {"note": note}
 
         if resolved is not None:
@@ -205,6 +224,49 @@ class EsetInspectClient:
             body.update({"priority": priority})
 
         response = self.api_patch(f"/detections/{detection_id}", params=params, json=body)
+        if response.status_code == 204:
+            return True
+        return False
+
+    def block_executable(self, executable_id: Union[int, str], clean: bool = False, note: str = None) -> bool:
+        """Block an executable."""
+        params: Dict[str, str] = {"$idType": "sha1" if self._is_sha1(executable_id) else "id"}
+        body: Dict[str, Union[bool, str]] = {"clean": clean}
+
+        if note is not None:
+            body.update({"note": note})
+
+        response = self.api_post(f"/executables/{executable_id}/block", params=params, json=body)
+        if response.status_code == 204:
+            return True
+        return False
+
+    def unblock_executable(self, executable_id: Union[int, str]) -> bool:
+        """Unlock an executable."""
+        params: Dict[str, str] = {"$idType": "sha1" if self._is_sha1(executable_id) else "id"}
+
+        response = self.api_post(f"/executables/{executable_id}/unblock", params=params)
+        if response.status_code == 204:
+            return True
+        return False
+
+    def isolate_machine(self, computer_id: Union[int, str, UUID]) -> bool:
+        """Isolate a machine from the network."""
+        params: Dict[str, str] = {"$idType": "uuid" if self._is_uuid(computer_id) else "id"}
+
+        response = self.api_post(f"/machines/{computer_id}/isolate", params=params)
+        return Task(**humps.decamelize(response.json()))  # type: ignore
+
+    def integrate_machine(self, computer_id: Union[int, str, UUID]) -> bool:
+        """Integrate a machine into the network."""
+        params: Dict[str, str] = {"$idType": "uuid" if self._is_uuid(computer_id) else "id"}
+
+        response = self.api_post(f"/machines/{computer_id}/integrate", params=params)
+        return Task(**humps.decamelize(response.json()))  # type: ignore
+
+    def kill_process(self, process_id: int) -> bool:
+        """Kill a running process."""
+        response = self.api_post(f"/machines/{process_id}/kill")
         if response.status_code == 204:
             return True
         return False

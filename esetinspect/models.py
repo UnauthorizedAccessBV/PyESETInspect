@@ -3,7 +3,6 @@ import json
 from datetime import datetime
 from typing import Dict
 from typing import Optional
-from typing import Union
 from uuid import UUID
 
 from attrs import asdict
@@ -11,31 +10,9 @@ from attrs import define
 from attrs import field
 from attrs import validators
 
-from esetinspect.const import EMPTY_UUID
-from esetinspect.const import TIMESTAMP_FORMAT
-
-
-def _to_uuid(input: str) -> UUID:
-    try:
-        return UUID(input)
-    except ValueError:
-        return EMPTY_UUID
-
-
-def _to_datetime(input: Union[str, None]) -> Union[datetime, None]:
-    if input is not None:
-        return datetime.strptime(input, TIMESTAMP_FORMAT)
-    return input
-
-
-def _to_json(input: Union[str, UUID, datetime]) -> str:
-    if isinstance(input, UUID):
-        return str(input)
-
-    if isinstance(input, datetime):
-        return datetime.strftime(input, TIMESTAMP_FORMAT)
-
-    return input
+from esetinspect.functions import _to_datetime
+from esetinspect.functions import _to_json
+from esetinspect.functions import _to_uuid
 
 
 @define(kw_only=True)
@@ -110,3 +87,10 @@ class Detection:
     def to_json(self) -> str:
         """Return the object as a JSON string."""
         return json.dumps(asdict(self), default=_to_json)
+
+
+@define
+class Task:
+    """Dataclass to hold Task data."""
+
+    task_uuid: UUID = field(converter=_to_uuid, repr=str)
