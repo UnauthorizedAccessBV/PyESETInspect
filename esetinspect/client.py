@@ -246,3 +246,10 @@ class EsetInspectClient:
         if response.status_code == 204:
             return True
         return False
+
+    def kill_process(self, process_id: int) -> bool:
+        """Kill a running process."""
+        response = self.api_post(f"/machines/{process_id}/kill")
+        if response.status_code == 204:
+            return True
+        return False
