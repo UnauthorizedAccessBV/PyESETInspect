@@ -4,24 +4,25 @@ from typing import List
 from typing import Union
 from uuid import UUID
 
-import attr
 import httpx
 import humps
+from attrs import define
+from attrs import field
 
 from esetinspect.models import Detection
 
 
-@attr.s
+@define
 class EsetInspectClient:
-    url: str = attr.ib()
-    username: str = attr.ib()
-    password: str = attr.ib()
-    domain: bool = attr.ib(default=False)
-    verify: bool = attr.ib(default=True)
-    client_id: str = attr.ib(factory=str)
-    timeout: int = attr.ib(default=60)
-    _client: httpx.Client = attr.ib(init=False)
-    _token: str = attr.ib(init=False, factory=str)
+    url: str
+    username: str
+    password: str
+    domain: bool = field(default=False)
+    verify: bool = field(default=True)
+    client_id: str = field(factory=str)
+    timeout: int = field(default=60)
+    _client: httpx.Client = field(init=False)
+    _token: str = field(init=False, factory=str)
 
     def __attrs_post_init__(self) -> None:
         self.url = self.url.rstrip("/")
@@ -182,14 +183,14 @@ class EsetInspectClient:
         if "count" in response_json:
             detections.update({"count": response_json["count"]})
 
-        detections.update({"value": [Detection(**d) for d in humps.decamelize(response_json["value"])]})
+        detections.update({"value": [Detection(**d) for d in humps.decamelize(response_json["value"])]})  # type: ignore
         return detections
 
     def get_detection(self, detection_id: int) -> Detection:
         """Get a specific detection based on ID or UUID."""
         params = {"$idType": "uuid" if self._is_uuid(detection_id) else "id"}
         response = self.api_get(f"/detections/{detection_id}", params=params)
-        detection = Detection(**humps.decamelize(response.json()["DETECTION"]))
+        detection = Detection(**humps.decamelize(response.json()["DETECTION"]))  # type: ignore
         return detection
 
     def update_detection(self, detection_id: int, resolved: bool = None, priority: int = None, note: str = "") -> bool:

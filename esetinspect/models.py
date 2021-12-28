@@ -6,7 +6,10 @@ from typing import Optional
 from typing import Union
 from uuid import UUID
 
-import attr
+from attrs import asdict
+from attrs import define
+from attrs import field
+from attrs import validators
 
 from esetinspect.const import EMPTY_UUID
 from esetinspect.const import TIMESTAMP_FORMAT
@@ -35,75 +38,75 @@ def _to_json(input: Union[str, UUID, datetime]) -> str:
     return input
 
 
-@attr.s(kw_only=True)
+@define(kw_only=True)
 class Detection:
     """Dataclass to hold Detection data."""
 
     # These fields should always be populated
-    computer_id: int = attr.ib()
-    computer_name: str = attr.ib()
-    computer_uuid: UUID = attr.ib(converter=_to_uuid, repr=str)
-    creation_time: Optional[datetime] = attr.ib(converter=_to_datetime, repr=str)
-    id: int = attr.ib()
-    module_id: int = attr.ib()
-    module_lg_age: int = attr.ib()
-    module_lg_popularity: int = attr.ib()
-    module_lg_reputation: int = attr.ib()
-    module_name: str = attr.ib()
-    module_sha1: str = attr.ib()
-    module_signature_type: int = attr.ib()
-    module_signer: str = attr.ib()
-    priority: int = attr.ib()
-    process_command_line: str = attr.ib()
-    process_id: int = attr.ib()
-    process_user: str = attr.ib()
-    resolved: bool = attr.ib()
-    rule_name: str = attr.ib()
-    rule_uuid: UUID = attr.ib(converter=_to_uuid, repr=str)
-    severity: int = attr.ib()
-    severity_score: int = attr.ib()
-    threat_name: str = attr.ib()
-    threat_uri: str = attr.ib()
-    type: int = attr.ib()
-    uuid: UUID = attr.ib(converter=_to_uuid, repr=str)
+    computer_id: int
+    computer_name: str
+    computer_uuid: UUID = field(converter=_to_uuid, repr=str)
+    creation_time: Optional[datetime] = field(converter=_to_datetime, repr=str)
+    id: int
+    module_id: int
+    module_lg_age: int
+    module_lg_popularity: int
+    module_lg_reputation: int
+    module_name: str
+    module_sha1: str
+    module_signature_type: int
+    module_signer: str
+    priority: int
+    process_command_line: str
+    process_id: int
+    process_user: str
+    resolved: bool
+    rule_name: str
+    rule_uuid: UUID = field(converter=_to_uuid, repr=str)
+    severity: int
+    severity_score: int
+    threat_name: str
+    threat_uri: str
+    type: int
+    uuid: UUID = field(converter=_to_uuid, repr=str)
 
     # These fields are only present for the detection list (/detections)
-    rule_id: Optional[int] = attr.ib(
+    rule_id: Optional[int] = field(
         default=None,
-        validator=attr.validators.optional(attr.validators.instance_of(int)),
+        validator=validators.optional(validators.instance_of(int)),
     )
 
     # These fields are only present for detection details (/detection/{id})
-    handled: Optional[int] = attr.ib(
+    handled: Optional[int] = field(
         default=None,
-        validator=attr.validators.optional(attr.validators.instance_of(int)),
+        validator=validators.optional(validators.instance_of(int)),
     )
-    module_first_seen_locally: Optional[datetime] = attr.ib(
-        default=None,
-        repr=str,
-        converter=_to_datetime,
-        validator=attr.validators.optional(attr.validators.instance_of(datetime)),
-    )
-    module_last_executed_locally: Optional[datetime] = attr.ib(
+    module_first_seen_locally: Optional[datetime] = field(
         default=None,
         repr=str,
         converter=_to_datetime,
-        validator=attr.validators.optional(attr.validators.instance_of(datetime)),
+        validator=validators.optional(validators.instance_of(datetime)),
     )
-    process_path: Optional[str] = attr.ib(
+    module_last_executed_locally: Optional[datetime] = field(
+        default=None,
+        repr=str,
+        converter=_to_datetime,
+        validator=validators.optional(validators.instance_of(datetime)),
+    )
+    process_path: Optional[str] = field(
         default=None,
         converter=str,
-        validator=attr.validators.optional(attr.validators.instance_of(str)),
+        validator=validators.optional(validators.instance_of(str)),
     )
 
     # These fields are not present on versions <1.6
-    event: str = attr.ib(factory=str)
-    note: str = attr.ib(factory=str)
+    event: str = field(factory=str)
+    note: str = field(factory=str)
 
     def to_dict(self) -> Dict:
         """Return the object as a dict."""
-        return attr.asdict(self)
+        return asdict(self)
 
     def to_json(self) -> str:
         """Return the object as a JSON string."""
-        return json.dumps(attr.asdict(self), default=_to_json)
+        return json.dumps(asdict(self), default=_to_json)
