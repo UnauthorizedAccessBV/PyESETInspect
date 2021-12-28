@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "esetinspect"
-version = "0.2.0"
+version = "0.3.0"
 description = ""
 authors = ["Donny Maasland <donny@unauthorizedaccess.nl>"]
 
