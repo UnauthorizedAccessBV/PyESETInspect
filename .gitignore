@@ -146,3 +146,6 @@ cython_debug/
 
 # Ignore test.py
 test.py
+
+# Ignore .DS_Store
+.DS_Store
