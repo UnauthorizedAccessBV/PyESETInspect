@@ -1,6 +1,6 @@
+from __future__ import annotations
+
 from typing import Any
-from typing import Dict
-from typing import List
 from typing import Union
 from uuid import UUID
 
@@ -9,7 +9,9 @@ import humps
 from attrs import define
 from attrs import field
 
+from esetinspect.const import AUTH_HEADER
 from esetinspect.models import Detection
+from esetinspect.models import DetectionList
 from esetinspect.models import Task
 
 
@@ -66,8 +68,8 @@ class EsetInspectClient:
         response = http_call(url, *args, **kwargs)
         response.raise_for_status()
 
-        if "X-Security-Token" in response.headers and response.headers["X-Security-Token"] != self._token:
-            self._token = response.headers.get("X-Security-Token")
+        if AUTH_HEADER in response.headers and response.headers[AUTH_HEADER] != self._token:
+            self._token = response.headers.get(AUTH_HEADER)
 
         return response
 
@@ -78,9 +80,9 @@ class EsetInspectClient:
         count: bool = False,
         order_by: str = None,
         filter: str = None,
-    ) -> Dict[str, Union[str, int, bool]]:
+    ) -> dict:
 
-        params: Dict[str, Union[str, int, bool]] = {}
+        params: dict = {}
 
         if top is not None:
             params.update({"$top": top})
@@ -132,7 +134,7 @@ class EsetInspectClient:
 
         return True
 
-    def __enter__(self) -> "EsetInspectClient":
+    def __enter__(self) -> EsetInspectClient:
         self.login()
         return self
 
@@ -145,7 +147,7 @@ class EsetInspectClient:
         return self.client_id != ""
 
     def login(self) -> None:
-        data: Dict[str, Union[str, bool]] = {"username": self.username, "password": self.password}
+        data: dict = {"username": self.username, "password": self.password}
 
         if not self.is_cloud:
             data.update({"domain": self.domain})
@@ -191,18 +193,15 @@ class EsetInspectClient:
         count: bool = False,
         order_by: str = None,
         filter: str = None,
-    ) -> Dict[str, Union[int, List[Detection]]]:
+    ) -> DetectionList:
         """List all detections matching the specified criteria."""
         params = self._build_params(top=top, skip=skip, count=count, order_by=order_by, filter=filter)
         response = self.api_get("/detections", params=params)
+
         response_json = response.json()
-        detections: Dict[str, Union[int, List[Detection]]] = {}
+        detection_list = DetectionList(**response_json)
 
-        if "count" in response_json:
-            detections.update({"count": response_json["count"]})
-
-        detections.update({"value": [Detection(**d) for d in humps.decamelize(response_json["value"])]})
-        return detections
+        return detection_list
 
     def get_detection(self, detection_id: Union[int, str, UUID]) -> Detection:
         """Get a specific detection based on ID or UUID."""
@@ -215,8 +214,8 @@ class EsetInspectClient:
         self, detection_id: Union[int, str, UUID], resolved: bool = None, priority: int = None, note: str = ""
     ) -> bool:
         """Update detection details."""
-        params: Dict[str, str] = {"$idType": "uuid" if self._is_uuid(detection_id) else "id"}
-        body: Dict[str, Union[bool, int, str]] = {"note": note}
+        params = {"$idType": "uuid" if self._is_uuid(detection_id) else "id"}
+        body: dict = {"note": note}
 
         if resolved is not None:
             body.update({"resolved": resolved})
@@ -231,8 +230,8 @@ class EsetInspectClient:
 
     def block_executable(self, executable_id: Union[int, str], clean: bool = False, note: str = None) -> bool:
         """Block an executable."""
-        params: Dict[str, str] = {"$idType": "sha1" if self._is_sha1(executable_id) else "id"}
-        body: Dict[str, Union[bool, str]] = {"clean": clean}
+        params = {"$idType": "sha1" if self._is_sha1(executable_id) else "id"}
+        body: dict = {"clean": clean}
 
         if note is not None:
             body.update({"note": note})
@@ -244,26 +243,26 @@ class EsetInspectClient:
 
     def unblock_executable(self, executable_id: Union[int, str]) -> bool:
         """Unlock an executable."""
-        params: Dict[str, str] = {"$idType": "sha1" if self._is_sha1(executable_id) else "id"}
+        params = {"$idType": "sha1" if self._is_sha1(executable_id) else "id"}
 
         response = self.api_post(f"/executables/{executable_id}/unblock", params=params)
         if response.status_code == 204:
             return True
         return False
 
-    def isolate_machine(self, computer_id: Union[int, str, UUID]) -> bool:
+    def isolate_machine(self, computer_id: Union[int, str, UUID]) -> Task:
         """Isolate a machine from the network."""
-        params: Dict[str, str] = {"$idType": "uuid" if self._is_uuid(computer_id) else "id"}
+        params = {"$idType": "uuid" if self._is_uuid(computer_id) else "id"}
 
         response = self.api_post(f"/machines/{computer_id}/isolate", params=params)
-        return Task(**humps.decamelize(response.json()))  # type: ignore
+        return Task(**humps.decamelize(response.json()))
 
-    def integrate_machine(self, computer_id: Union[int, str, UUID]) -> bool:
+    def integrate_machine(self, computer_id: Union[int, str, UUID]) -> Task:
         """Integrate a machine into the network."""
-        params: Dict[str, str] = {"$idType": "uuid" if self._is_uuid(computer_id) else "id"}
+        params = {"$idType": "uuid" if self._is_uuid(computer_id) else "id"}
 
         response = self.api_post(f"/machines/{computer_id}/integrate", params=params)
-        return Task(**humps.decamelize(response.json()))  # type: ignore
+        return Task(**humps.decamelize(response.json()))
 
     def kill_process(self, process_id: int) -> bool:
         """Kill a running process."""

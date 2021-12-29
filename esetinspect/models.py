@@ -1,18 +1,49 @@
 """Holds models for various sorts of data returned from the API."""
+from __future__ import annotations
+
 import json
 from datetime import datetime
-from typing import Dict
 from typing import Optional
+from typing import Union
 from uuid import UUID
 
 from attrs import asdict
+from attrs import converters
 from attrs import define
 from attrs import field
-from attrs import validators
+from humps import decamelize
 
-from esetinspect.functions import _to_datetime
-from esetinspect.functions import _to_json
-from esetinspect.functions import _to_uuid
+from esetinspect.const import EMPTY_UUID
+from esetinspect.const import TIMESTAMP_FORMAT
+
+
+def _to_uuid(value: str) -> UUID:
+    try:
+        return UUID(value)
+    except ValueError:
+        return EMPTY_UUID
+
+
+def _to_datetime(value: Optional[str]) -> Optional[datetime]:
+    if value is None:
+        return value
+
+    return datetime.strptime(value, TIMESTAMP_FORMAT)
+
+
+def _to_json(value: Union[str, UUID, datetime]) -> Union[str, datetime]:
+    if isinstance(value, UUID):
+        return str(value)
+
+    if isinstance(value, datetime):
+        return datetime.strftime(value, TIMESTAMP_FORMAT)
+
+    return value
+
+
+def _to_detections(value: dict) -> list[Detection]:
+    retval = [Detection(**d) for d in decamelize(value)]
+    return retval
 
 
 @define(kw_only=True)
@@ -23,7 +54,7 @@ class Detection:
     computer_id: int
     computer_name: str
     computer_uuid: UUID = field(converter=_to_uuid, repr=str)
-    creation_time: Optional[datetime] = field(converter=_to_datetime, repr=str)
+    creation_time: datetime = field(converter=_to_datetime, repr=str)
     id: int
     module_id: int
     module_lg_age: int
@@ -47,40 +78,24 @@ class Detection:
     type: int
     uuid: UUID = field(converter=_to_uuid, repr=str)
 
+    # These fields are not present on versions <1.6
+    event: Optional[str] = field(default=None, converter=converters.optional(str))
+    note: Optional[str] = field(default=None, converter=converters.optional(str))
+
     # These fields are only present for the detection list (/detections)
-    rule_id: Optional[int] = field(
-        default=None,
-        validator=validators.optional(validators.instance_of(int)),
-    )
+    rule_id: Optional[int] = field(default=None, converter=converters.optional(int))
 
     # These fields are only present for detection details (/detection/{id})
-    handled: Optional[int] = field(
-        default=None,
-        validator=validators.optional(validators.instance_of(int)),
-    )
+    handled: Optional[int] = field(default=None, converter=converters.optional(int))
     module_first_seen_locally: Optional[datetime] = field(
-        default=None,
-        repr=str,
-        converter=_to_datetime,
-        validator=validators.optional(validators.instance_of(datetime)),
+        default=None, repr=str, converter=converters.optional(_to_datetime)
     )
     module_last_executed_locally: Optional[datetime] = field(
-        default=None,
-        repr=str,
-        converter=_to_datetime,
-        validator=validators.optional(validators.instance_of(datetime)),
+        default=None, repr=str, converter=converters.optional(_to_datetime)
     )
-    process_path: Optional[str] = field(
-        default=None,
-        converter=str,
-        validator=validators.optional(validators.instance_of(str)),
-    )
+    process_path: Optional[str] = field(default=None, converter=converters.optional(str))
 
-    # These fields are not present on versions <1.6
-    event: str = field(factory=str)
-    note: str = field(factory=str)
-
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         """Return the object as a dict."""
         retval: dict = asdict(self)
         return retval
@@ -91,7 +106,15 @@ class Detection:
         return retval
 
 
-@define
+@define(kw_only=True)
+class DetectionList:
+    """Dataclass to hold a list of detection objects."""
+
+    value: list[Detection] = field(converter=_to_detections)
+    count: Optional[int] = field(default=None, converter=converters.optional(int))
+
+
+@define(kw_only=True)
 class Task:
     """Dataclass to hold Task data."""
 

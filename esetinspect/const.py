@@ -1,4 +1,5 @@
 from uuid import UUID
 
+AUTH_HEADER = "X-Security-Token"
 EMPTY_UUID = UUID("00000000-00000000-00000000-00000000")
 TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%S%z"
