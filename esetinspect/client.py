@@ -201,14 +201,14 @@ class EsetInspectClient:
         if "count" in response_json:
             detections.update({"count": response_json["count"]})
 
-        detections.update({"value": [Detection(**d) for d in humps.decamelize(response_json["value"])]})  # type: ignore
+        detections.update({"value": [Detection(**d) for d in humps.decamelize(response_json["value"])]})
         return detections
 
     def get_detection(self, detection_id: Union[int, str, UUID]) -> Detection:
         """Get a specific detection based on ID or UUID."""
         params = {"$idType": "uuid" if self._is_uuid(detection_id) else "id"}
         response = self.api_get(f"/detections/{detection_id}", params=params)
-        detection = Detection(**humps.decamelize(response.json()["DETECTION"]))  # type: ignore
+        detection = Detection(**humps.decamelize(response.json()["DETECTION"]))
         return detection
 
     def update_detection(
