@@ -113,7 +113,8 @@ class EsetInspectClient:
         except ValueError:
             return False
 
-        return str(test_uuid) == input
+        retval: bool = str(test_uuid) == input
+        return retval
 
     @staticmethod
     def _is_sha1(input: Union[int, str]) -> bool:

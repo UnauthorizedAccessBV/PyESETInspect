@@ -82,11 +82,13 @@ class Detection:
 
     def to_dict(self) -> Dict:
         """Return the object as a dict."""
-        return asdict(self)
+        retval: dict = asdict(self)
+        return retval
 
     def to_json(self) -> str:
         """Return the object as a JSON string."""
-        return json.dumps(asdict(self), default=_to_json)
+        retval = json.dumps(asdict(self), default=_to_json)
+        return retval
 
 
 @define

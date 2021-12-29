@@ -1,4 +1,6 @@
 from datetime import datetime
+from typing import Optional
+from typing import overload
 from typing import Union
 from uuid import UUID
 
@@ -13,13 +15,39 @@ def _to_uuid(input: str) -> UUID:
         return EMPTY_UUID
 
 
-def _to_datetime(input: Union[str, None]) -> Union[datetime, None]:
-    if input is not None:
-        return datetime.strptime(input, TIMESTAMP_FORMAT)
-    return input
+@overload
+def _to_datetime(input: None) -> None:
+    pass
 
 
-def _to_json(input: Union[str, UUID, datetime]) -> str:
+@overload
+def _to_datetime(input: str) -> datetime:
+    pass
+
+
+def _to_datetime(input: Optional[str]) -> Optional[datetime]:
+    if input is None:
+        return input
+
+    return datetime.strptime(input, TIMESTAMP_FORMAT)
+
+
+@overload
+def _to_json(input: UUID) -> str:
+    pass
+
+
+@overload
+def _to_json(input: datetime) -> datetime:
+    pass
+
+
+@overload
+def _to_json(input: str) -> str:
+    pass
+
+
+def _to_json(input: Union[str, UUID, datetime]) -> Union[str, datetime]:
     if isinstance(input, UUID):
         return str(input)
 

@@ -16,8 +16,8 @@
 	},
 	// Set *default* container specific settings.json values on container create.
 	"settings": {
-		//"python.defaultInterpreterPath": "${containerWorkspaceFolder}/.venv/bin/python",
-		"python.defaultInterpreterPath": "/usr/local/bin/python",
+		"python.defaultInterpreterPath": "${containerWorkspaceFolder}/.venv/bin/python",
+		//"python.defaultInterpreterPath": "/usr/local/bin/python",
 		"python.formatting.provider": "black",
 		"python.linting.enabled": true,
 		"python.linting.pylintEnabled": false,
@@ -27,15 +27,24 @@
 		"python.linting.pycodestyleEnabled": false,
 		"python.linting.pydocstyleEnabled": true,
 		"editor.formatOnSave": true,
-		"python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
-		"python.formatting.blackPath": "/usr/local/py-utils/bin/black",
-		"python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
-		"python.linting.banditPath": "/usr/local/py-utils/bin/bandit",
-		"python.linting.flake8Path": "/usr/local/py-utils/bin/flake8",
-		"python.linting.mypyPath": "/usr/local/py-utils/bin/mypy",
-		"python.linting.pycodestylePath": "/usr/local/py-utils/bin/pycodestyle",
-		"python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
-		"python.linting.pylintPath": "/usr/local/py-utils/bin/pylint",
+		// "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
+		// "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
+		// "python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
+		// "python.linting.banditPath": "/usr/local/py-utils/bin/bandit",
+		// "python.linting.flake8Path": "/usr/local/py-utils/bin/flake8",
+		// "python.linting.mypyPath": "/usr/local/py-utils/bin/mypy",
+		// "python.linting.pycodestylePath": "/usr/local/py-utils/bin/pycodestyle",
+		// "python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
+		// "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint",
+		"python.formatting.autopep8Path": "${containerWorkspaceFolder}/.venv/bin/autopep8",
+		"python.formatting.blackPath": "${containerWorkspaceFolder}/.venv/bin/black",
+		"python.formatting.yapfPath": "${containerWorkspaceFolder}/.venv/bin/yapf",
+		"python.linting.banditPath": "${containerWorkspaceFolder}/.venv/bin/bandit",
+		"python.linting.flake8Path": "${containerWorkspaceFolder}/.venv/bin/flake8",
+		"python.linting.mypyPath": "${containerWorkspaceFolder}/.venv/bin/mypy",
+		"python.linting.pycodestylePath": "${containerWorkspaceFolder}/.venv/bin/pycodestyle",
+		"python.linting.pydocstylePath": "${containerWorkspaceFolder}/.venv/bin/pydocstyle",
+		"python.linting.pylintPath": "${containerWorkspaceFolder}/.venv/bin/pylint",
 		"python.formatting.blackArgs": [
 			"--line-length=120"
 		],
@@ -54,7 +63,7 @@
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "poetry install && if [ ! -f .git/hooks/pre-commit ]; then $(poetry env info -p)/bin/pre-commit install; fi",
+	"postCreateCommand": "poetry config virtualenvs.in-project true && poetry install && if [ ! -f .git/hooks/pre-commit ]; then $(poetry env info -p)/bin/pre-commit install; fi",
 	// Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
 	"remoteUser": "vscode"
 }
