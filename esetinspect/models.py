@@ -5,9 +5,9 @@ import json
 from datetime import datetime
 from typing import Optional
 from typing import overload
-from typing import TYPE_CHECKING
 from typing import Union
 from uuid import UUID
+from xml.etree.ElementTree import Element  # nosec - only used for type checking
 
 from attrs import asdict
 from attrs import converters
@@ -18,9 +18,6 @@ from humps import decamelize
 
 from esetinspect.const import EMPTY_UUID
 from esetinspect.const import TIMESTAMP_FORMAT
-
-if TYPE_CHECKING:
-    from xml.etree.ElementTree import Element  # nosec - only used for type checking
 
 
 def _to_uuid(value: str) -> UUID:
@@ -63,12 +60,21 @@ def _to_json(value: str) -> str:
     pass
 
 
-def _to_json(value: Union[str, UUID, datetime]) -> Union[str, datetime]:
+@overload
+def _to_json(value: Element) -> str:
+    pass
+
+
+def _to_json(value: Union[str, UUID, datetime, Element]) -> Union[str, datetime]:
     if isinstance(value, UUID):
         return str(value)
 
     if isinstance(value, datetime):
         return datetime.strftime(value, TIMESTAMP_FORMAT)
+
+    if isinstance(value, Element):
+        retval: str = _xml_to_str(value)
+        return retval
 
     return value
 
@@ -115,7 +121,7 @@ def _xml_to_str(value: Optional[Element]) -> Optional[str]:
     if value is None:
         return None
 
-    retval: str = ET.tostring(value)
+    retval: str = ET.tostring(value).decode()
     return retval
 
 
@@ -214,6 +220,16 @@ class Rule:
         default=None, converter=converters.optional(_to_xml), repr=_xml_to_str
     )
     uuid: Optional[UUID] = field(default=None, converter=converters.optional(_to_uuid), repr=str)
+
+    def to_dict(self) -> dict:
+        """Return the object as a dict."""
+        retval: dict = asdict(self)
+        return retval
+
+    def to_json(self) -> str:
+        """Return the object as a JSON string."""
+        retval = json.dumps(asdict(self), default=_to_json)
+        return retval
 
 
 @define(kw_only=True)
