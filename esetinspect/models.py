@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 from datetime import datetime
 from typing import Optional
+from typing import overload
 from typing import Union
 from uuid import UUID
 
@@ -24,11 +25,37 @@ def _to_uuid(value: str) -> UUID:
         return EMPTY_UUID
 
 
+@overload
+def _to_datetime(value: None) -> None:
+    pass
+
+
+@overload
+def _to_datetime(value: str) -> datetime:
+    pass
+
+
 def _to_datetime(value: Optional[str]) -> Optional[datetime]:
     if value is None:
-        return value
+        return None
 
-    return datetime.strptime(value, TIMESTAMP_FORMAT)
+    retval = datetime.strptime(value, TIMESTAMP_FORMAT)
+    return retval
+
+
+@overload
+def _to_json(value: UUID) -> str:
+    pass
+
+
+@overload
+def _to_json(value: datetime) -> datetime:
+    pass
+
+
+@overload
+def _to_json(value: str) -> str:
+    pass
 
 
 def _to_json(value: Union[str, UUID, datetime]) -> Union[str, datetime]:
@@ -54,7 +81,8 @@ class Detection:
     computer_id: int
     computer_name: str
     computer_uuid: UUID = field(converter=_to_uuid, repr=str)
-    creation_time: datetime = field(converter=_to_datetime, repr=str)
+    # BUG: https://github.com/python-attrs/attrs/issues/897
+    creation_time: datetime = field(converter=_to_datetime, repr=str)  # type: ignore
     id: int
     module_id: int
     module_lg_age: int
@@ -87,10 +115,12 @@ class Detection:
 
     # These fields are only present for detection details (/detection/{id})
     handled: Optional[int] = field(default=None, converter=converters.optional(int))
-    module_first_seen_locally: Optional[datetime] = field(
+    # BUG: https://github.com/python-attrs/attrs/issues/897
+    module_first_seen_locally: Optional[datetime] = field(  # type: ignore
         default=None, repr=str, converter=converters.optional(_to_datetime)
     )
-    module_last_executed_locally: Optional[datetime] = field(
+    # BUG: https://github.com/python-attrs/attrs/issues/897
+    module_last_executed_locally: Optional[datetime] = field(  # type: ignore
         default=None, repr=str, converter=converters.optional(_to_datetime)
     )
     process_path: Optional[str] = field(default=None, converter=converters.optional(str))

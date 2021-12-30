@@ -37,6 +37,7 @@ warn_return_any = true
 
 [[tool.mypy.overrides]]
 module = [
-    "humps"
+    "humps",
+    "httpx"
 ]
 ignore_missing_imports = true
