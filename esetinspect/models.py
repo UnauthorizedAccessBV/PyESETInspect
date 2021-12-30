@@ -5,6 +5,7 @@ import json
 from datetime import datetime
 from typing import Optional
 from typing import overload
+from typing import TYPE_CHECKING
 from typing import Union
 from uuid import UUID
 
@@ -12,10 +13,15 @@ from attrs import asdict
 from attrs import converters
 from attrs import define
 from attrs import field
+from defusedxml import ElementTree as ET
 from humps import decamelize
 
 from esetinspect.const import EMPTY_UUID
 from esetinspect.const import TIMESTAMP_FORMAT
+
+if TYPE_CHECKING:
+    # bandit: only used for type checking
+    from xml.etree.ElementTree import Element  # nosec
 
 
 def _to_uuid(value: str) -> UUID:
@@ -70,6 +76,47 @@ def _to_json(value: Union[str, UUID, datetime]) -> Union[str, datetime]:
 
 def _to_detections(value: dict) -> list[Detection]:
     retval = [Detection(**d) for d in decamelize(value)]
+    return retval
+
+
+def _to_rules(value: dict) -> list[Rule]:
+    retval = [Rule(**r) for r in decamelize(value)]
+    return retval
+
+
+@overload
+def _to_xml(value: str) -> Element:
+    pass
+
+
+@overload
+def _to_xml(value: None) -> None:
+    pass
+
+
+def _to_xml(value: Optional[str]) -> Optional[Element]:
+    if value is None:
+        return None
+
+    retval: Element = ET.fromstring(value)
+    return retval
+
+
+@overload
+def _xml_to_str(value: None) -> None:
+    pass
+
+
+@overload
+def _xml_to_str(value: Element) -> str:
+    pass
+
+
+def _xml_to_str(value: Optional[Element]) -> Optional[str]:
+    if value is None:
+        return None
+
+    retval: str = ET.tostring(value)
     return retval
 
 
@@ -149,3 +196,30 @@ class Task:
     """Dataclass to hold Task data."""
 
     task_uuid: UUID = field(converter=_to_uuid, repr=str)
+
+
+@define(kw_only=True)
+class Rule:
+    """Dataclass to huld a rule object."""
+
+    # These fields are always populated
+    enabled: bool
+    id: int
+    name: str
+    severity: int
+    severity_score: int
+
+    # These fields are only present when getting rule details
+    # BUG: https://github.com/python-attrs/attrs/issues/897
+    body: Optional[Element] = field(  # type: ignore
+        default=None, converter=converters.optional(_to_xml), repr=_xml_to_str
+    )
+    uuid: Optional[UUID] = field(default=None, converter=converters.optional(_to_uuid), repr=str)
+
+
+@define(kw_only=True)
+class RuleList:
+    """Dataclass to hold a list of rule objects."""
+
+    value: list[Rule] = field(converter=_to_rules)
+    count: Optional[int] = field(default=None, converter=converters.optional(int))

@@ -12,6 +12,8 @@ from attrs import field
 from esetinspect.const import AUTH_HEADER
 from esetinspect.models import Detection
 from esetinspect.models import DetectionList
+from esetinspect.models import Rule
+from esetinspect.models import RuleList
 from esetinspect.models import Task
 
 
@@ -270,3 +272,27 @@ class EsetInspectClient:
         if response.status_code == 204:
             return True
         return False
+
+    def list_rules(
+        self,
+        top: int = None,
+        skip: int = None,
+        count: bool = False,
+        order_by: str = None,
+        filter: str = None,
+    ) -> RuleList:
+        """List all rules."""
+        params = self._build_params(top=top, skip=skip, count=count, order_by=order_by, filter=filter)
+
+        response = self.api_get("/rules", params=params)
+        response_json = response.json()
+        rule_list = RuleList(**response_json)
+
+        return rule_list
+
+    def get_rule(self, rule_id: Union[int, str, UUID]) -> Rule:
+        """Get a specific rule based on ID or UUID."""
+        params = {"$idType": "uuid" if self._is_uuid(rule_id) else "id"}
+        response = self.api_get(f"/rules/{rule_id}", params=params)
+        rule = Rule(**humps.decamelize(response.json()["RULE"]))
+        return rule
