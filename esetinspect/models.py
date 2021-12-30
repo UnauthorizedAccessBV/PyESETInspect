@@ -20,8 +20,7 @@ from esetinspect.const import EMPTY_UUID
 from esetinspect.const import TIMESTAMP_FORMAT
 
 if TYPE_CHECKING:
-    # bandit: only used for type checking
-    from xml.etree.ElementTree import Element  # nosec
+    from xml.etree.ElementTree import Element  # nosec - only used for type checking
 
 
 def _to_uuid(value: str) -> UUID:
