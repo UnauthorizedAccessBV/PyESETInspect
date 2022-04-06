@@ -23,7 +23,7 @@ repos:
     -   id: mypy
         additional_dependencies: [attrs, httpx, pyhumps]
         exclude: ^tests/
-        args: [--disallow-untyped-defs, --disallow-incomplete-defs, --ignore-missing-imports]
+        args: [--ignore-missing-imports, --disallow-untyped-defs, --disallow-incomplete-defs]
 -   repo: https://github.com/PyCQA/bandit
     rev: 1.7.4
     hooks:

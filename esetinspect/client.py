@@ -41,7 +41,7 @@ class EsetInspectClient:
 
     def _raw_request(self, uri: str, *args: Any, method: str = "GET", **kwargs: Any) -> httpx.Response:
 
-        if self._token != "":
+        if self._token != str():
             self._client.headers.update({"Authorization": f"Bearer {self._token}"})
 
         if method.upper() == "GET":
@@ -153,7 +153,7 @@ class EsetInspectClient:
 
     def logout(self) -> None:
         data = {"token": self._token}
-        self._token = ""
+        self._token = str()
         self.frontend_post("/logout", json=data)
 
     def api_get(self, endpoint: str, *args: Any, **kwargs: Any) -> httpx.Response:
