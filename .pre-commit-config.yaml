@@ -25,7 +25,7 @@ repos:
         exclude: ^tests/
         args: [--ignore-missing-imports, --disallow-untyped-defs, --disallow-incomplete-defs]
 -   repo: https://github.com/PyCQA/bandit
-    rev: 1.7.6
+    rev: 1.7.7
     hooks:
     -   id: bandit
         exclude: ^tests/
